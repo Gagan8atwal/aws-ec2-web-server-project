@@ -1,0 +1,5 @@
+#!/bin/bash
+DATE=$(date +%F-%H-%M-%S)
+echo "Backup created at $DATE" > backup-$DATE.txt
+aws s3 cp backup-$DATE.txt s3://my-test-bucket-gagan/
+es
