@@ -12,7 +12,7 @@ permissions:
 jobs:
   generate-and-capture:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 30
     steps:
       - name: Check out QA harness
         uses: actions/checkout@v4
@@ -28,14 +28,14 @@ jobs:
       - name: Install Chromium runtime
         run: npx playwright install --with-deps chromium
 
-      - name: Run Vidger generation workflow in cloud browser
-        run: node qa/vidger-cloud-qa.mjs
+      - name: Recover submitted Wan jobs without new generation spend
+        run: node qa/vidger-recover-wan.mjs
 
-      - name: Upload videos, screenshots, trace, and QA evidence
+      - name: Upload recovered videos and QA evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: vidger-cloud-qa-${{ github.run_id }}
-          path: artifacts/vidger-qa
+          name: vidger-wan-recovery-${{ github.run_id }}
+          path: artifacts/vidger-recovery
           if-no-files-found: warn
           retention-days: 7
