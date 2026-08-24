@@ -3,7 +3,8 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import crypto from "node:crypto";
 
-const BASE_URL = "https://omnimedia-engine.vercel.app";
+const BASE_URL = "https://omnimedia-engine-eoaj5xo57-gagandeep-singh-s-projects559.vercel.app";
+const VERCEL_SHARE_URL = `${BASE_URL}/?_vercel_share=zde12di6MQ1m8uN1f9zaE8HwIUah3EL3`;
 const RUN_ID = process.env.GITHUB_RUN_ID || String(Date.now());
 const QA_EMAIL = `hello+vidgerrecovery-${RUN_ID}@pivotcalls.co`;
 const QA_PASSWORD = `Vg!${crypto.randomBytes(30).toString("base64url")}9a`;
@@ -129,7 +130,7 @@ async function main() {
   await context.tracing.start({ screenshots: true, snapshots: true, sources: true });
   const bootstrap = await context.newPage();
   try {
-    await bootstrap.goto(`${BASE_URL}/app`, { waitUntil: "domcontentloaded", timeout: 60_000 });
+    await bootstrap.goto(VERCEL_SHARE_URL, { waitUntil: "domcontentloaded", timeout: 60_000 });
     await signUp(bootstrap);
     const results = await Promise.all(cases.map((testCase) => recoverCase(context, testCase)));
     const summary = {
