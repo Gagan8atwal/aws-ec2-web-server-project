@@ -5,7 +5,7 @@ import { spawnSync } from "node:child_process";
 import crypto from "node:crypto";
 
 const BASE_URL = "https://omnimedia-engine-ie3pa7bo7-gagandeep-singh-s-projects559.vercel.app";
-const SHARE_URL = `${BASE_URL}/?_vercel_share=EEoYp0vkSSiqjEpomynvMoaA4ASHu5NE`;
+const SHARE_TOKEN = "On0mBmUlmVrdh4j0XHv6pIoYxXN1H8At";
 const TARGET_ORGANIZATION_ID = "4267241c-13d3-45b8-a422-5a05af738d67";
 const TARGET_ORGANIZATION_NAME = "Vidger Production Matrix QA Workspace";
 const TARGET_REQUEST_ID = "01a0367c-f733-78b1-873c-31eab6a5f3ab";
@@ -20,6 +20,12 @@ const FRAME_DIR = join(OUTPUT_DIR, "frames");
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+function previewUrl(pathOrUrl) {
+  const url = new URL(pathOrUrl, BASE_URL);
+  url.searchParams.set("_vercel_share", SHARE_TOKEN);
+  return url.toString();
+}
+
 async function readJson(response) {
   const body = await response.text();
   try {
@@ -30,7 +36,7 @@ async function readJson(response) {
 }
 
 async function signUp(page) {
-  const response = await page.request.post(`${BASE_URL}/api/auth`, {
+  const response = await page.request.post(previewUrl("/api/auth"), {
     headers: { "content-type": "application/json" },
     data: {
       action: "signUp",
@@ -51,7 +57,7 @@ async function signUp(page) {
 }
 
 async function getAccount(page) {
-  const response = await page.request.get(`${BASE_URL}/api/account`, { timeout: 30_000 });
+  const response = await page.request.get(previewUrl("/api/account"), { timeout: 30_000 });
   return { response, payload: await readJson(response) };
 }
 
@@ -75,7 +81,7 @@ async function waitForTargetAccess(page) {
 async function waitForPlatformAdmin(page) {
   console.log(`VIDGER_BRANDING_WAITING_FOR_PLATFORM_ADMIN email=${QA_EMAIL}`);
   for (let attempt = 1; attempt <= 240; attempt += 1) {
-    const response = await page.request.get(`${BASE_URL}/api/branding?owner=1`, { timeout: 30_000 });
+    const response = await page.request.get(previewUrl("/api/branding?owner=1"), { timeout: 30_000 });
     if (response.ok()) {
       console.log(`VIDGER_BRANDING_PLATFORM_ADMIN_READY email=${QA_EMAIL}`);
       return readJson(response);
@@ -98,7 +104,7 @@ function queryFor(mode, disposition = "attachment") {
 }
 
 async function fetchExport(page, mode, outputPath) {
-  const response = await page.request.get(`${BASE_URL}/api/providers/fal/export?${queryFor(mode)}`, {
+  const response = await page.request.get(previewUrl(`/api/providers/fal/export?${queryFor(mode)}`), {
     timeout: 360_000,
   });
   if (!response.ok()) {
@@ -120,7 +126,7 @@ function run(command, args, label) {
   return result;
 }
 
-function inspectVideos(brandedPath, logoFreePath) {
+async function inspectVideos(brandedPath, logoFreePath) {
   const brandedProbe = run("ffprobe", [
     "-v", "error",
     "-show_entries", "format=duration:format_tags=comment,encoder:stream=codec_type,codec_name,width,height",
@@ -141,7 +147,7 @@ function inspectVideos(brandedPath, logoFreePath) {
   if (!branded.streams?.some((stream) => stream.codec_type === "video" && stream.codec_name === "h264")) {
     throw new Error("Branded MP4 does not contain H.264 video.");
   }
-  writeFile(join(OUTPUT_DIR, "ffprobe.json"), JSON.stringify({ branded, logoFree }, null, 2));
+  await writeFile(join(OUTPUT_DIR, "ffprobe.json"), JSON.stringify({ branded, logoFree }, null, 2));
 
   const brandedFrame = join(FRAME_DIR, "branded-frame.jpg");
   const logoFreeFrame = join(FRAME_DIR, "logo-free-frame.jpg");
@@ -159,7 +165,7 @@ function inspectVideos(brandedPath, logoFreePath) {
 }
 
 async function openGeneration(page) {
-  const target = `${BASE_URL}/app?request=${encodeURIComponent(TARGET_REQUEST_ID)}&model=${encodeURIComponent(TARGET_MODEL)}`;
+  const target = previewUrl(`/app?request=${encodeURIComponent(TARGET_REQUEST_ID)}&model=${encodeURIComponent(TARGET_MODEL)}`);
   await page.goto(target, { waitUntil: "domcontentloaded", timeout: 60_000 });
   await page.waitForSelector("[data-prompt-result] video", { state: "visible", timeout: 180_000 });
   await page.waitForSelector(".video-stage > .vidger-video-mark", { state: "visible", timeout: 60_000 });
@@ -187,11 +193,11 @@ async function main() {
   };
 
   try {
-    await page.goto(SHARE_URL, { waitUntil: "domcontentloaded", timeout: 60_000 });
+    await page.goto(previewUrl("/"), { waitUntil: "domcontentloaded", timeout: 60_000 });
     await signUp(page);
     await waitForTargetAccess(page);
 
-    const policyResponse = await page.request.get(`${BASE_URL}/api/branding`);
+    const policyResponse = await page.request.get(previewUrl("/api/branding"));
     const initialPolicy = await readJson(policyResponse);
     if (!policyResponse.ok() || initialPolicy.policy?.can_export_logo_free !== false) {
       throw new Error(`Logo-free must default to false: ${JSON.stringify(initialPolicy)}`);
@@ -199,7 +205,7 @@ async function main() {
     summary.checks.defaultPolicyDenied = true;
 
     const statusQuery = new URLSearchParams({ requestId: TARGET_REQUEST_ID, model: TARGET_MODEL });
-    const statusResponse = await page.request.get(`${BASE_URL}/api/providers/fal/status?${statusQuery}`);
+    const statusResponse = await page.request.get(previewUrl(`/api/providers/fal/status?${statusQuery}`));
     const statusPayload = await readJson(statusResponse);
     if (!statusResponse.ok() || statusPayload.status !== "COMPLETED") {
       throw new Error(`Completed generation status unavailable: ${statusResponse.status()} ${JSON.stringify(statusPayload)}`);
@@ -217,7 +223,7 @@ async function main() {
     await page.screenshot({ path: join(SCREENSHOT_DIR, "default-vidger-preview.png"), fullPage: true });
     summary.checks.defaultPreviewMarked = true;
 
-    const denied = await page.request.get(`${BASE_URL}/api/providers/fal/export?${queryFor("none")}`, { timeout: 60_000 });
+    const denied = await page.request.get(previewUrl(`/api/providers/fal/export?${queryFor("none")}`), { timeout: 60_000 });
     if (denied.status() !== 403) throw new Error(`Logo-free direct request should be 403, received ${denied.status()}.`);
     summary.checks.directLogoFreeDenied = true;
 
@@ -226,7 +232,7 @@ async function main() {
     summary.checks.brandedExportCompleted = true;
 
     await waitForPlatformAdmin(page);
-    await page.goto(`${BASE_URL}/owner`, { waitUntil: "domcontentloaded", timeout: 60_000 });
+    await page.goto(previewUrl("/owner"), { waitUntil: "domcontentloaded", timeout: 60_000 });
     await page.waitForSelector("[data-vidger-branding-admin]", { state: "visible", timeout: 120_000 });
     const row = page.locator("[data-vidger-branding-admin] tbody tr").filter({ hasText: TARGET_ORGANIZATION_NAME });
     if (await row.count() !== 1) throw new Error("Target organization branding row was not found.");
@@ -251,10 +257,10 @@ async function main() {
     const logoFreePath = join(VIDEO_DIR, "logo-free.mp4");
     await fetchExport(page, "none", logoFreePath);
     summary.checks.logoFreeExportCompleted = true;
-    inspectVideos(brandedPath, logoFreePath);
+    await inspectVideos(brandedPath, logoFreePath);
     summary.checks.burnedWatermarkVerified = true;
 
-    await page.goto(`${BASE_URL}/owner`, { waitUntil: "domcontentloaded", timeout: 60_000 });
+    await page.goto(previewUrl("/owner"), { waitUntil: "domcontentloaded", timeout: 60_000 });
     await page.waitForSelector("[data-vidger-branding-admin]", { state: "visible", timeout: 120_000 });
     const enabledRow = page.locator("[data-vidger-branding-admin] tbody tr").filter({ hasText: TARGET_ORGANIZATION_NAME });
     await enabledRow.getByRole("button", { name: "Disable logo-free" }).click();
@@ -263,7 +269,7 @@ async function main() {
       const target = rows.find((item) => item.textContent.includes(name));
       return target && target.textContent.includes("Disabled") && target.textContent.includes("Allow logo-free");
     }, TARGET_ORGANIZATION_NAME, { timeout: 60_000 });
-    const deniedAgain = await page.request.get(`${BASE_URL}/api/providers/fal/export?${queryFor("none")}`, { timeout: 60_000 });
+    const deniedAgain = await page.request.get(previewUrl(`/api/providers/fal/export?${queryFor("none")}`), { timeout: 60_000 });
     if (deniedAgain.status() !== 403) throw new Error(`Logo-free should be denied again, received ${deniedAgain.status()}.`);
     await page.screenshot({ path: join(SCREENSHOT_DIR, "owner-branding-controls-disabled-again.png"), fullPage: true });
     summary.checks.ownerRevokedLogoFree = true;
