@@ -10,11 +10,11 @@ permissions:
   contents: read
 
 jobs:
-  recover-existing-generations:
+  diagnose-wan-queue:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 15
     steps:
-      - name: Check out recovery harness
+      - name: Check out diagnostic harness
         uses: actions/checkout@v4
 
       - name: Use Node.js 24
@@ -28,14 +28,14 @@ jobs:
       - name: Install Chromium runtime
         run: npx playwright install --with-deps chromium
 
-      - name: Recover existing Wan and robot jobs through preview browser
-        run: node qa/vidger-wan-recovery-preview.mjs
+      - name: Capture authenticated Wan queue diagnostics
+        run: node qa/vidger-wan-diagnose-preview.mjs
 
-      - name: Upload recovered videos and browser evidence
+      - name: Upload diagnostic evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: vidger-wan-recovery-preview-${{ github.run_id }}
-          path: artifacts/vidger-wan-recovery-preview
+          name: vidger-wan-diagnostics-${{ github.run_id }}
+          path: artifacts/vidger-wan-diagnostics
           if-no-files-found: warn
           retention-days: 7
