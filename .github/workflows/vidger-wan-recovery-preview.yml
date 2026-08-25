@@ -1,0 +1,41 @@
+name: Vidger Wan Preview Recovery
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  recover-existing-generations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out recovery harness
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install pinned Playwright
+        run: npm install --no-save playwright@1.62.1
+
+      - name: Install Chromium runtime
+        run: npx playwright install --with-deps chromium
+
+      - name: Recover existing Wan and robot jobs through preview browser
+        run: node qa/vidger-wan-recovery-preview.mjs
+
+      - name: Upload recovered videos and browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vidger-wan-recovery-preview-${{ github.run_id }}
+          path: artifacts/vidger-wan-recovery-preview
+          if-no-files-found: warn
+          retention-days: 7
