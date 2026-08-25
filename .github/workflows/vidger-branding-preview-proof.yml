@@ -1,0 +1,48 @@
+name: Vidger Branding Preview Proof
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-branding-controls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out proof harness
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install pinned Playwright
+        run: npm install --no-save playwright@1.62.1
+
+      - name: Install Chromium and media inspection tools
+        run: |
+          npx playwright install --with-deps chromium
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Run zero-spend Vidger branding proof
+        run: node qa/vidger-branding-preview-proof.mjs
+
+      - name: Remove temporary account credentials from evidence
+        if: always()
+        run: rm -f artifacts/vidger-branding-proof/qa-account.json
+
+      - name: Upload videos, screenshots, frames, and proof summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vidger-branding-preview-proof-${{ github.run_id }}
+          path: artifacts/vidger-branding-proof
+          if-no-files-found: warn
+          retention-days: 7
