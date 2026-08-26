@@ -29,11 +29,13 @@ jobs:
       - name: Install pinned Playwright
         run: npm install --no-save playwright@1.62.1
 
-      - name: Install Chromium and media inspection tools
+      - name: Install Chromium runtime
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify media inspection tools
         run: |
-          npx playwright install --with-deps chromium
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg
+          ffmpeg -version | head -1
+          ffprobe -version | head -1
 
       - name: Run zero-spend Vidger branding proof
         run: node qa/run-vidger-branding-proof.mjs
