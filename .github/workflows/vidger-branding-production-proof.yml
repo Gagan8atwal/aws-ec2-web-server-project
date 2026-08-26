@@ -1,0 +1,52 @@
+name: Vidger Branding Production Proof
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: vidger-branding-production-proof-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  prove-production-branding:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out proof harness
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install pinned Playwright
+        run: npm install --no-save playwright@1.62.1
+
+      - name: Install Chromium runtime
+        run: npx playwright install --with-deps chromium
+
+      - name: Install media inspection tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          ffmpeg -version | head -1
+          ffprobe -version | head -1
+
+      - name: Run zero-spend Vidger production proof
+        run: node qa/run-vidger-branding-production-proof.mjs
+
+      - name: Upload branded video, logo-free video, screenshots, storyboards, and proof summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vidger-branding-production-proof-${{ github.run_id }}
+          path: artifacts/vidger-branding-proof
+          if-no-files-found: warn
+          retention-days: 7
