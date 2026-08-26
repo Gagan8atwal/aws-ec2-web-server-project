@@ -32,8 +32,10 @@ jobs:
       - name: Install Chromium runtime
         run: npx playwright install --with-deps chromium
 
-      - name: Verify media inspection tools
+      - name: Install media inspection tools
         run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
           ffmpeg -version | head -1
           ffprobe -version | head -1
 
