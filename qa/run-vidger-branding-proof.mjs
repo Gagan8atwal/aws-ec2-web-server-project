@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
 const shareToken = "UUTCJXHsAOPV69xSMyTqSY2u1Or5TNEA";
+const proofRevision = "ordinary-user-then-owner";
 const sourcePath = new URL("./vidger-branding-live-proof-v4.mjs", import.meta.url);
 let source = await readFile(sourcePath, "utf8");
 
@@ -24,6 +25,7 @@ const protectedNavigation = [
 if (!source.includes(navigation)) throw new Error("Vidger proof navigation hook was not found.");
 source = source.replace(navigation, protectedNavigation);
 
+console.log(`VIDGER_PROOF_REVISION ${proofRevision}`);
 const patchedPath = join(import.meta.dirname, `.generated-vidger-branding-proof-${process.env.GITHUB_RUN_ID || Date.now()}.mjs`);
 await writeFile(patchedPath, source);
 await import(pathToFileURL(patchedPath).href);
