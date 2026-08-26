@@ -1,13 +1,16 @@
 name: Vidger Production Showcase
 
 on:
+  push:
+    branches:
+      - vidger-showcase-20260826
   pull_request:
     branches:
       - main
   workflow_dispatch:
 
 concurrency:
-  group: vidger-showcase-${{ github.event.pull_request.number || github.ref }}
+  group: vidger-showcase-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
