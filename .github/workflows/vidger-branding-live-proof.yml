@@ -38,7 +38,7 @@ jobs:
           ffprobe -version | head -1
 
       - name: Run zero-spend production Vidger branding proof
-        run: node qa/vidger-branding-production-proof-lean.mjs
+        run: node qa/run-vidger-branding-production-proof-lean.mjs
 
       - name: Upload videos, screenshots, storyboards, and proof summary
         if: always()
