@@ -36,6 +36,20 @@ if ((source.match(new RegExp(gateWait.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g
 }
 source = source.replace(gateWait, memberGate).replace(gateWait, ownerGate);
 
+source = source
+  .replace(
+    '    stage.className = "video-stage";',
+    '    stage.className = "video-stage";\n    stage.style.position = "relative";\n    stage.style.minHeight = "620px";\n    stage.style.background = "#080b12";',
+  )
+  .replace(
+    '  await page.waitForSelector("[data-prompt-result] .video-stage > .vidger-video-mark", { state: "visible", timeout: 60_000 });',
+    '  await page.waitForSelector("[data-prompt-result] .video-stage > .vidger-video-mark", { state: "attached", timeout: 60_000 });',
+  )
+  .replace(
+    '  await page.waitForSelector("[data-prompt-result] [data-vidger-branding-control]", { state: "visible", timeout: 60_000 });',
+    '  await page.waitForSelector("[data-prompt-result] [data-vidger-branding-control]", { state: "attached", timeout: 60_000 });',
+  );
+
 for (const expected of [
   'db78561c-d1b8-41a7-8d5b-bc820e050537',
   'Vidger Founder Workspace',
@@ -43,6 +57,8 @@ for (const expected of [
   'fal-ai/kling-video/v3/standard/text-to-video',
   'Authenticated app check failed',
   'Authenticated owner check failed',
+  'stage.style.minHeight = "620px"',
+  'state: "attached"',
 ]) {
   if (!source.includes(expected)) throw new Error(`Vidger proof patch failed: ${expected}`);
 }
@@ -54,4 +70,5 @@ const patchedPath = join(
 await writeFile(patchedPath, source);
 console.log("VIDGER_LIVE_PROOF_SOURCE restored-kling-founder-generation");
 console.log("VIDGER_LIVE_PROOF_AUTH cookie-session-api-verified");
+console.log("VIDGER_LIVE_PROOF_DOM deterministic-stage-layout");
 await import(pathToFileURL(patchedPath).href);
