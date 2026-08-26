@@ -12,11 +12,20 @@ const protectedPlaybackSource = [
   "    playback.searchParams.set(\"model\", candidateValue.model);",
   "    video.src = playback.toString();",
 ].join("\n");
-
 if (!source.includes(directProviderSource)) {
   throw new Error("Vidger production proof playback hook was not found.");
 }
 source = source.replace(directProviderSource, protectedPlaybackSource);
+
+const scriptTagWait = "  await page.waitForFunction(() => Boolean(document.querySelector('script[src=\"/assets/vidger-branding.js\"]')), null, { timeout: 30_000 });";
+const brandingRuntimeWait = [
+  scriptTagWait,
+  "  await page.waitForSelector(\"[data-vidger-branding-note]\", { state: \"visible\", timeout: 60_000 });",
+].join("\n");
+if (!source.includes(scriptTagWait)) {
+  throw new Error("Vidger branding runtime readiness hook was not found.");
+}
+source = source.replace(scriptTagWait, brandingRuntimeWait);
 
 const patchedPath = join(
   import.meta.dirname,
@@ -24,4 +33,5 @@ const patchedPath = join(
 );
 await writeFile(patchedPath, source);
 console.log("VIDGER_PROOF_PLAYBACK_MODE same-origin-secure-proxy");
+console.log("VIDGER_PROOF_UI_READINESS branding-runtime-executed");
 await import(pathToFileURL(patchedPath).href);
