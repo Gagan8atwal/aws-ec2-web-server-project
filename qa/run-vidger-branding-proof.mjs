@@ -1,6 +1,5 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { tmpdir } from "node:os";
 import { pathToFileURL } from "node:url";
 
 const shareToken = "RzPVaKQLfuASnq23IZYedOR4hMsA7QmU";
@@ -21,6 +20,6 @@ const protectedRequest = [
 if (!source.includes(originalRequest)) throw new Error("Vidger proof request hook was not found.");
 source = source.replace(originalRequest, protectedRequest);
 
-const patchedPath = join(tmpdir(), `vidger-branding-proof-${process.env.GITHUB_RUN_ID || Date.now()}.mjs`);
+const patchedPath = join(import.meta.dirname, `.generated-vidger-branding-proof-${process.env.GITHUB_RUN_ID || Date.now()}.mjs`);
 await writeFile(patchedPath, source);
 await import(pathToFileURL(patchedPath).href);
