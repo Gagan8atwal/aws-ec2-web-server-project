@@ -13,20 +13,13 @@ source = source
   .replace(
     'const TARGET_ORGANIZATION_NAME = "Vidger Production Matrix QA Workspace";',
     'const TARGET_ORGANIZATION_NAME = "Vidger Founder Workspace";',
-  )
-  .replace(
-    'const MODEL = "fal-ai/kling-video/v3/standard/text-to-video";',
-    'const MODEL = "fal-ai/wan/v2.7/text-to-video";',
-  )
-  .replace(
-    /const CANDIDATES = \[[\s\S]*?\];\nconst RUN_ID/,
-    'const CANDIDATES = [\n  { id: "founder-wan-16x9", requestId: "019fd74d-e309-7920-9226-a379469d684c", model: MODEL },\n];\nconst RUN_ID',
   );
 
 for (const expected of [
   'db78561c-d1b8-41a7-8d5b-bc820e050537',
   'Vidger Founder Workspace',
-  '019fd74d-e309-7920-9226-a379469d684c',
+  '01a0367c-f733-78b1-873c-31eab6a5f3ab',
+  'fal-ai/kling-video/v3/standard/text-to-video',
 ]) {
   if (!source.includes(expected)) throw new Error(`Vidger proof patch failed: ${expected}`);
 }
@@ -36,5 +29,5 @@ const patchedPath = join(
   `.generated-vidger-branding-production-proof-${process.env.GITHUB_RUN_ID || Date.now()}.mjs`,
 );
 await writeFile(patchedPath, source);
-console.log("VIDGER_LIVE_PROOF_SOURCE founder-completed-generation");
+console.log("VIDGER_LIVE_PROOF_SOURCE restored-kling-founder-generation");
 await import(pathToFileURL(patchedPath).href);
