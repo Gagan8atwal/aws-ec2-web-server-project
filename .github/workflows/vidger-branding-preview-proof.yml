@@ -31,6 +31,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg
 
+      - name: Pin proof to the exact READY Vidger deployment
+        run: |
+          sed -i 's#const BASE_URL = ".*";#const BASE_URL = "https://omnimedia-engine-mvzuu52x7-gagandeep-singh-s-projects559.vercel.app";#' qa/vidger-branding-preview-proof-v2.mjs
+          sed -i 's#const SHARE_TOKEN = ".*";#const SHARE_TOKEN = "o05bqpqoVor2O0xgR5hVlzW0sTlYFrby";#' qa/vidger-branding-preview-proof-v2.mjs
+
       - name: Run zero-spend Vidger branding proof
         run: node qa/vidger-branding-preview-proof-v2.mjs
 
