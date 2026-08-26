@@ -32,7 +32,7 @@ jobs:
           sudo apt-get install -y ffmpeg
 
       - name: Run zero-spend Vidger branding proof
-        run: node qa/vidger-branding-live-proof.mjs
+        run: node qa/vidger-branding-live-proof-v2.mjs
 
       - name: Upload videos, screenshots, storyboards, and proof summary
         if: always()
