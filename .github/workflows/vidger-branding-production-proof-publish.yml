@@ -1,0 +1,71 @@
+name: Vidger Branding Production Proof Publish
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: vidger-branding-production-proof-publish
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  prove-and-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out proof harness
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install pinned Playwright
+        run: npm install --no-save playwright@1.62.1
+
+      - name: Install Chromium and media tools
+        run: |
+          npx playwright install --with-deps chromium
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg zip
+          ffmpeg -version | head -1
+          ffprobe -version | head -1
+
+      - name: Run zero-spend Vidger production proof
+        run: node qa/run-vidger-branding-production-proof.mjs
+
+      - name: Package proof
+        run: |
+          cd artifacts
+          zip -r ../vidger-branding-production-proof.zip vidger-branding-proof
+          cd ..
+          sha256sum vidger-branding-production-proof.zip > vidger-branding-production-proof.sha256
+
+      - name: Publish passing proof package
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete vidger-branding-proof-latest --yes --cleanup-tag || true
+          gh release create vidger-branding-proof-latest \
+            vidger-branding-production-proof.zip \
+            vidger-branding-production-proof.sha256 \
+            --title "Vidger branding production proof" \
+            --notes "Authenticated zero-generation-spend production proof. Includes branded and logo-free MP4s, browser screenshots, storyboards, media probes, hashes, and policy-reset evidence."
+
+      - name: Upload workflow artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vidger-branding-production-proof-${{ github.run_id }}
+          path: |
+            artifacts/vidger-branding-proof
+            vidger-branding-production-proof.zip
+            vidger-branding-production-proof.sha256
+          if-no-files-found: warn
+          retention-days: 7
