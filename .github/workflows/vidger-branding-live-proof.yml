@@ -1,4 +1,4 @@
-name: Vidger Branding Live Proof
+name: Vidger Branding Production Proof
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: vidger-branding-live-proof-${{ github.event.pull_request.number || github.ref }}
+  group: vidger-branding-production-proof-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -32,21 +32,19 @@ jobs:
       - name: Install Chromium runtime
         run: npx playwright install --with-deps chromium
 
-      - name: Install media inspection tools
+      - name: Verify preinstalled media tools
         run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg
           ffmpeg -version | head -1
           ffprobe -version | head -1
 
-      - name: Run zero-spend Vidger branding proof
-        run: node qa/run-vidger-branding-proof.mjs
+      - name: Run zero-spend production Vidger branding proof
+        run: node qa/vidger-branding-production-proof.mjs
 
       - name: Upload videos, screenshots, storyboards, and proof summary
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: vidger-branding-live-proof-${{ github.run_id }}
-          path: artifacts/vidger-branding-proof
+          name: vidger-branding-production-proof-${{ github.run_id }}
+          path: artifacts/vidger-branding-production-proof
           if-no-files-found: warn
           retention-days: 7
