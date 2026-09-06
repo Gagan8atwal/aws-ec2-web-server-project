@@ -1,9 +1,6 @@
 name: Vidger Wan Preview Recovery
 
 on:
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
 
 permissions:
@@ -29,6 +26,8 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Capture authenticated Wan queue diagnostics
+        env:
+          VIDGER_WAN_DIAGNOSTIC_VERCEL_SHARE_TOKEN: ${{ secrets.VIDGER_WAN_DIAGNOSTIC_VERCEL_SHARE_TOKEN }}
         run: node qa/vidger-wan-diagnose-preview.mjs
 
       - name: Upload diagnostic evidence

@@ -3,7 +3,11 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 const BASE_URL = "https://omnimedia-engine-a5tke54ci-gagandeep-singh-s-projects559.vercel.app";
-const SHARE_URL = `${BASE_URL}/?_vercel_share=dIQir8FLcKfjQOzvraIpJCuJnUvgLo0t`;
+const SHARE_TOKEN = process.env.VIDGER_WAN_DIAGNOSTIC_VERCEL_SHARE_TOKEN?.trim();
+if (!SHARE_TOKEN) {
+  throw new Error("VIDGER_WAN_DIAGNOSTIC_VERCEL_SHARE_TOKEN is required for protected preview access.");
+}
+const SHARE_URL = `${BASE_URL}/?_vercel_share=${encodeURIComponent(SHARE_TOKEN)}`;
 const OUTPUT_DIR = join(process.cwd(), "artifacts", "vidger-wan-diagnostics");
 const REQUESTS = [
   "01a0367c-db28-7410-80bd-eabd5dc11ddb",

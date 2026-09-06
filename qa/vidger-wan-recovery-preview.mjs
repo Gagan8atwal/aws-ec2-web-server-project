@@ -4,7 +4,11 @@ import { join } from "node:path";
 import crypto from "node:crypto";
 
 const BASE_URL = "https://omnimedia-engine-3hxmw6919-gagandeep-singh-s-projects559.vercel.app";
-const SHARE_URL = `${BASE_URL}/?_vercel_share=dkgOcK6s76vXJDqDQxcKDySxQ1sF7YHw`;
+const SHARE_TOKEN = process.env.VIDGER_WAN_RECOVERY_VERCEL_SHARE_TOKEN?.trim();
+if (!SHARE_TOKEN) {
+  throw new Error("VIDGER_WAN_RECOVERY_VERCEL_SHARE_TOKEN is required for protected preview access.");
+}
+const SHARE_URL = `${BASE_URL}/?_vercel_share=${encodeURIComponent(SHARE_TOKEN)}`;
 const TARGET_ORGANIZATION_ID = "4267241c-13d3-45b8-a422-5a05af738d67";
 const RUN_ID = process.env.GITHUB_RUN_ID || String(Date.now());
 const QA_EMAIL = `hello+vidgerrecover-${RUN_ID}@pivotcalls.co`;
