@@ -5,7 +5,11 @@ import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 
 const BASE_URL = "https://omnimedia-engine-g8n9tj0vh-gagandeep-singh-s-projects559.vercel.app";
-const SHARE_URL = `${BASE_URL}/?_vercel_share=0JaTjgzO5Nu7bHpSjIlDMKldgCA1nyqR`;
+const SHARE_TOKEN = process.env.VIDGER_VERCEL_SHARE_TOKEN?.trim();
+if (!SHARE_TOKEN) {
+  throw new Error("VIDGER_VERCEL_SHARE_TOKEN is required for protected preview proof.");
+}
+const SHARE_URL = `${BASE_URL}/?_vercel_share=${encodeURIComponent(SHARE_TOKEN)}`;
 const REQUEST_ID = "01a0367d-e0df-7513-be18-e110b7fb9f9f";
 const MODEL = "fal-ai/kling-video/v3/standard/text-to-video";
 const TARGET_ORGANIZATION_ID = "4267241c-13d3-45b8-a422-5a05af738d67";

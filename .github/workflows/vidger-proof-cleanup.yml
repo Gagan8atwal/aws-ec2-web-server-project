@@ -1,9 +1,7 @@
 name: Remove Temporary Vidger Proof Release
 
 on:
-  push:
-    branches:
-      - vidger-branding-live-proof-20260825
+  workflow_dispatch:
 
 permissions:
   contents: write

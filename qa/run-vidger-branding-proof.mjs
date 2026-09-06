@@ -2,15 +2,10 @@ import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
-const shareToken = "UUTCJXHsAOPV69xSMyTqSY2u1Or5TNEA";
 const proofRevision = "ordinary-user-then-owner";
 const sourcePath = new URL("./vidger-branding-live-proof-v4.mjs", import.meta.url);
 let source = await readFile(sourcePath, "utf8");
 
-source = source.replace(
-  /const SHARE_URL = `\$\{BASE_URL\}\/\?_vercel_share=[^`]+`;/,
-  `const SHARE_URL = \`${"${BASE_URL}"}/?_vercel_share=${shareToken}\`;`,
-);
 
 // A valid share visit establishes Vercel's bypass cookie in the browser context.
 // Page.request shares that cookie jar, so API requests remain same-origin and authenticated.

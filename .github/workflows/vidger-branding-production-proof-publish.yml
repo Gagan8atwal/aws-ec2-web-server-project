@@ -1,9 +1,6 @@
 name: Vidger Branding Production Proof Publish
 
 on:
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
 
 concurrency:
