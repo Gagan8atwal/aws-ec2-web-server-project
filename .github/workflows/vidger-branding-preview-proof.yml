@@ -1,9 +1,6 @@
 name: Vidger Branding Preview Proof
 
 on:
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
 
 permissions:
@@ -34,9 +31,10 @@ jobs:
       - name: Pin proof to the exact READY Vidger deployment
         run: |
           sed -i 's#const BASE_URL = ".*";#const BASE_URL = "https://omnimedia-engine-mvzuu52x7-gagandeep-singh-s-projects559.vercel.app";#' qa/vidger-branding-preview-proof-v2.mjs
-          sed -i 's#const SHARE_TOKEN = ".*";#const SHARE_TOKEN = "o05bqpqoVor2O0xgR5hVlzW0sTlYFrby";#' qa/vidger-branding-preview-proof-v2.mjs
 
       - name: Run zero-spend Vidger branding proof
+        env:
+          VIDGER_VERCEL_SHARE_TOKEN: ${{ secrets.VIDGER_VERCEL_SHARE_TOKEN }}
         run: node qa/vidger-branding-preview-proof-v2.mjs
 
       - name: Remove temporary account credentials from evidence

@@ -5,7 +5,10 @@ import { spawnSync } from "node:child_process";
 import crypto from "node:crypto";
 
 const BASE_URL = "https://omnimedia-engine-git-feat-65ab1f-gagandeep-singh-s-projects559.vercel.app";
-const SHARE_TOKEN = "6ZI1c7ecQb5eRm1NzoPFSihnmJCTWkfp";
+const SHARE_TOKEN = process.env.VIDGER_VERCEL_SHARE_TOKEN?.trim();
+if (!SHARE_TOKEN) {
+  throw new Error("VIDGER_VERCEL_SHARE_TOKEN is required for protected preview proof.");
+}
 const TARGET_ORGANIZATION_ID = "4267241c-13d3-45b8-a422-5a05af738d67";
 const TARGET_ORGANIZATION_NAME = "Vidger Production Matrix QA Workspace";
 const TARGET_REQUEST_ID = "01a0367c-f733-78b1-873c-31eab6a5f3ab";
